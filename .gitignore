@@ -224,3 +224,5 @@ __marimo__/
 
 # Any DuckDB database files
 *.duckdb
+
+.DS_Store
