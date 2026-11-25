@@ -1,0 +1,4 @@
+order_year,has_prior_year,total_revenue,new_customer_revenue,existing_customer_growth,revenue_lost_attrition,existing_customer_revenue_current,existing_customer_revenue_prior,total_customers_current,total_customers_previous,new_customers,lost_customers,revenue_per_customer,customer_retention_rate,revenue_check,customer_check
+2015,False,29036749.19,,,,,,231294,,,,125.54,,,
+2016,True,25730943.59,17206366.9,39043.65,20551216.15,8524576.69,8485533.04,204646,231294,136891,163539,125.73,0.2929,0.0,0
+2017,True,31417495.03,21769213.01,63857.06,16146518.63,9648282.02,9584424.96,249987,204646,173449,128108,125.68,0.374,0.0,0

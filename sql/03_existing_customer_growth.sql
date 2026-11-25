@@ -4,11 +4,10 @@
    Description : Change in revenue from returning customers: current-year
                  revenue minus prior-year revenue for customers present in
                  both years.
-   Source      : customer_year (one row per customer per year; see 00_setup.sql)
+   Source      : customer_year (one row per customer per year)
    Output      : order_year, existing_customer_growth
    Grain       : One row per year, excluding the first (no prior year)
-   Notes       : Existing Customer Revenue Current - Existing Customer Revenue Prior
-                 A negative value means returning customers spent
+   Notes       : A negative value means returning customers spent
                  less than the year before.
    ============================================================================ */
 
