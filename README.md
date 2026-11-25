@@ -1,106 +1,54 @@
-# stout-customer-revenue-analysis
+# Customer Revenue Analysis
 
-=== Data quality checks ===
-┌──────────┬────────────┐
-│ raw_rows │ clean_rows │
-│  int64   │   int64    │
-├──────────┼────────────┤
-│   685927 │     685927 │
-└──────────┴────────────┘
+Year-over-year analysis of 3 years of customer orders (2015–2017): revenue composition, new vs. existing customer behavior, attrition, and retention.
 
-┌────────────┬──────────────┬───────────┐
-│ null_email │ null_revenue │ null_year │
-│   int64    │    int64     │   int64   │
-├────────────┼──────────────┼───────────┤
-│          0 │            0 │         0 │
-└────────────┴──────────────┴───────────┘
+## Links
 
-┌────────────────────────┬───────────────────────┬─────────────────────┬───────────────────────┐
-│ emails_with_whitespace │ emails_with_uppercase │ distinct_raw_emails │ distinct_clean_emails │
-│         int64          │         int64         │        int64        │         int64         │
-├────────────────────────┼───────────────────────┼─────────────────────┼───────────────────────┤
-│                 270214 │                     0 │              604618 │                541634 │
-└────────────────────────┴───────────────────────┴─────────────────────┴───────────────────────┘
+- **Tableau Dashboard:** [dashboard](https://public.tableau.com/app/profile/tri.watanasuparp5651/viz/StoutCaseStudy_17956479612840/Dashboard)
+- **Repo:** [this repository](https://github.com/triwatana/stout-customer-revenue-analysis)
 
-┌───────────────────┬───────────────────────┐
-│ zero_revenue_rows │ negative_revenue_rows │
-│       int64       │         int64         │
-├───────────────────┼───────────────────────┤
-│                 0 │                     0 │
-└───────────────────┴───────────────────────┘
+## Repo Structure
 
-┌────────────┬────────────┬───────────┬───────────────┬───────────────┬───────────────┐
-│ order_year │ order_rows │ customers │    revenue    │  min_revenue  │  max_revenue  │
-│   int32    │   int64    │   int64   │ decimal(38,2) │ decimal(18,2) │ decimal(18,2) │
-├────────────┼────────────┼───────────┼───────────────┼───────────────┼───────────────┤
-│       2015 │     231294 │    231294 │   29036749.19 │          1.00 │        250.00 │
-│       2016 │     204646 │    204646 │   25730943.59 │          1.00 │        250.00 │
-│       2017 │     249987 │    249987 │   31417495.03 │          1.00 │        250.00 │
-└────────────┴────────────┴───────────┴───────────────┴───────────────┴───────────────┘
+```
+sql/      10 metric queries (01–10) + setup, data quality, and summary
+python/   run_analysis.py — loads data, runs checks and queries, exports CSVs
+data/     raw/ (input CSV), output/ (query results for Tableau)
+```
 
-┌───────────────────────────────────┐
-│ customer_years_with_multiple_rows │
-│               int64               │
-├───────────────────────────────────┤
-│                                 0 │
-└───────────────────────────────────┘
+## How to Run
 
-┌────────────────┐
-│ duplicate_rows │
-│     int64      │
-├────────────────┤
-│              0 │
-└────────────────┘
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install duckdb pandas
+python python/run_analysis.py
+```
 
+Outputs land in `data/output/`, one CSV per query plus `11_yearly_summary.csv`, the Tableau data source.
 
-=== 01_total_revenue ===
- order_year  total_revenue
-       2015    29036749.19
-       2016    25730943.59
-       2017    31417495.03
+## Assumptions
 
-=== 02_new_customer_revenue ===
- order_year  new_customer_revenue
-       2016           17206366.90
-       2017           21769213.01
+- "Prior year" = the calendar year immediately before (e.g., 2017 compares to 2016).
+- The first year (2015) has no prior year; comparison metrics are excluded or shown as N/A.
+- A customer who skips a year and returns later counts as "new" on return, per the case study's definition.
+- Emails are trimmed and lowercased before matching, so formatting differences don't split one customer into two.
 
-=== 03_existing_customer_growth ===
- order_year  existing_customer_growth
-       2016                  39043.65
-       2017                  63857.06
+## Data Quality Notes
 
-=== 04_revenue_lost_attrition ===
- order_year  revenue_lost_attrition
-       2016             20551216.15
-       2017             16146518.63
+- 685,927 rows, no nulls, no zero/negative revenue, no duplicate rows, no multiple rows per customer-year.
+- **39% of raw emails had leading/trailing whitespace.** Left uncleaned, this would double-count ~63,000 customers and overstate new/lost customer counts by 6–8%. Fixed by trimming and lowercasing all emails before analysis.
 
-=== 05_existing_customer_revenue_current ===
- order_year  existing_customer_revenue_current
-       2016                         8524576.69
-       2017                         9648282.02
+## Validation
 
-=== 06_existing_customer_revenue_prior ===
- order_year  existing_customer_revenue_prior
-       2016                       8485533.04
-       2017                       9584424.96
+`11_yearly_summary.sql` reconciles every metric against two identities, both of which check out to 0 for 2016 and 2017:
 
-=== 07_total_customers_current ===
- order_year  total_customers_current
-       2015                   231294
-       2016                   204646
-       2017                   249987
+- Revenue: Total Current = Total Prior + New + Existing Growth − Attrition Lost
+- Customers: Customers Current = Customers Prior + New − Lost
 
-=== 08_total_customers_previous ===
- order_year  total_customers_previous
-       2016                    231294
-       2017                    204646
+## Key Insights
 
-=== 09_new_customers ===
- order_year  new_customers
-       2016         136891
-       2017         173449
-
-=== 10_lost_customers ===
- order_year  lost_customers
-       2016          163539
-       2017          128108
+1. **Attrition drove the 2016 dip; 2017 reversed it.** Revenue fell to $25.7M in 2016 as attrition ($20.6M) outpaced new revenue ($17.2M). In 2017, new revenue ($21.8M) overtook attrition ($16.1M), pushing revenue to a 3-year high of $31.4M.
+2. **Growth comes from new customers, not existing ones spending more.** Existing customer growth added just $39K–$64K a year — negligible next to $17–22M swings from new and lost customers.
+3. **Retention rose but stays low.** 29.3% (2016) → 37.4% (2017). Still, roughly 6 in 10 customers don't return the following year.
+4. **Spend per customer is flat**, at $125.5–$125.7 across all 3 years. Revenue changes come entirely from customer count, not deeper spending.
+5. **Data cleaning mattered:** see Data Quality Notes above.
