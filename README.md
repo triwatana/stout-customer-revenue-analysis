@@ -7,6 +7,10 @@ Year-over-year analysis of 3 years of customer orders (2015–2017): revenue com
 - **Tableau Dashboard:** [dashboard](https://public.tableau.com/app/profile/tri.watanasuparp5651/viz/StoutCaseStudy_17956479612840/Dashboard)
 - **Repo:** [this repository](https://github.com/triwatana/stout-customer-revenue-analysis)
 
+## Dashboard Preview
+
+![Tableau Dashboard](images/dashboard.png)
+
 ## Repo Structure
 
 ```
